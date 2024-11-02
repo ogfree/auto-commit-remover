@@ -23,7 +23,7 @@ jobs:
 
     - name: Remove all but the newest 2 commits
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
       run: |
         # Get the total number of commits
         total_commits=$(git rev-list --count HEAD)
@@ -32,7 +32,7 @@ jobs:
         if [ "$total_commits" -gt 2 ]; then
           # Keep only the last 2 commits
           git reset --hard HEAD~$((total_commits - 2))
-          git push --force "https://${GITHUB_ACTOR}:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" main
+          git push --force "https://${GITHUB_ACTOR}:${PAT_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" main
         else
           echo "Less than 3 commits, no action taken"
         fi
