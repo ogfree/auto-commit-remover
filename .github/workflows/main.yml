@@ -11,6 +11,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0  # Fetch all commit history
 
       - name: Configure Git
         run: |
@@ -24,6 +26,8 @@ jobs:
           # Get the total number of commits
           total_commits=$(git rev-list --count HEAD)
           
+          echo "Total commits: $total_commits"  # Debug line to verify commit count
+
           # Check if we have more than 2 commits
           if [ "$total_commits" -gt 2 ]; then
             # Remove only the oldest commit
