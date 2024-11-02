@@ -1,37 +1,36 @@
-# .github/workflows/trim_commit_history.yml
-name: Trim to Last 2 Commits on New Push
+name: Auto Commit Remover
 
 on:
   push:
     branches:
-      - main  # Trigger on pushes to the main branch
+      - main
 
 jobs:
-  trim_commits:
+  clean_commits:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Check out repository
-      uses: actions/checkout@v3
-      with:
-        fetch-depth: 0  # Fetch full commit history
+      - name: Checkout repository
+        uses: actions/checkout@v2
 
-    - name: Configure Git
-      run: |
-        git config --global user.name "github-actions[bot]"
-        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+      - name: Configure Git
+        run: |
+          git config --global user.name "${{ github.actor }}"
+          git config --global user.email "${{ github.actor }}@users.noreply.github.com"
 
- - name: Remove older commits and push
-  run: |
-    # Get the total number of commits
-    total_commits=$(git rev-list --count HEAD)
-    
-    # Check if we have more than 2 commits
-    if [ "$total_commits" -gt 2 ]; then
-      # Keep only the last 2 commits
-      git reset --hard HEAD~$((total_commits - 2))
-      git push --force "https://${{ secrets.PAT_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git" main
-    else
-      echo "Less than 3 commits, no action taken"
-    fi
-  shell: /usr/bin/bash -e
+      - name: Remove older commits and push
+        env:
+          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
+        run: |
+          # Get the total number of commits
+          total_commits=$(git rev-list --count HEAD)
+          
+          # Check if we have more than 2 commits
+          if [ "$total_commits" -gt 2 ]; then
+            # Keep only the last 2 commits
+            git reset --hard HEAD~$((total_commits - 2))
+            
+            # Force push the remaining commits
+            git push --force "https://${{ github.actor }}:${{ secrets.PAT_TOKEN }}@github.com/${{ github.repository }}.git" main
+          else
+            echo "Less than 3 commits, no action taken"
+          fi
