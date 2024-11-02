@@ -1,0 +1,32 @@
+# .github/workflows/trim_commit_history.yml
+name: Trim to Last 2 Commits on New Push
+
+on:
+  push:
+    branches:
+      - main  # Trigger on pushes to the main branch
+
+jobs:
+  trim_commits:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0  # Fetch full commit history
+
+    - name: Configure Git
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+    - name: Remove all but the last 2 commits
+      run: |
+        if [ "$(git rev-list --count HEAD)" -gt 2 ]; then
+          # Remove all commits except the last 2
+          git reset --hard HEAD~$(($(git rev-list --count HEAD) - 2))
+          git push --force origin main  # Force-push the updated history
+        else
+          echo "Less than 3 commits, no action taken"
+        fi
