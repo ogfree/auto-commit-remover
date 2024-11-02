@@ -1,0 +1,36 @@
+name: Auto Commit Remover
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  clean_commits:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "${{ github.actor }}"
+          git config --global user.email "${{ github.actor }}@users.noreply.github.com"
+
+      - name: Remove the oldest commit and push
+        env:
+          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
+        run: |
+          # Get the total number of commits
+          total_commits=$(git rev-list --count HEAD)
+          
+          # Check if we have more than 2 commits
+          if [ "$total_commits" -gt 2 ]; then
+            # Remove only the oldest commit
+            git reset --hard HEAD~1
+            
+            # Force push the remaining commits
+            git push --force "https://${{ github.actor }}:${{ secrets.PAT_TOKEN }}@github.com/${{ github.repository }}.git" main
+          else
+            echo "Less than 3 commits, no action taken"
+          fi
