@@ -21,12 +21,18 @@ jobs:
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-    - name: Remove all but the last 2 commits
+    - name: Remove all but the newest 2 commits
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        if [ "$(git rev-list --count HEAD)" -gt 2 ]; then
-          # Remove all commits except the last 2
-          git reset --hard HEAD~$(($(git rev-list --count HEAD) - 2))
-          git push --force origin main  # Force-push the updated history
+        # Get the total number of commits
+        total_commits=$(git rev-list --count HEAD)
+        
+        # Check if we have more than 2 commits
+        if [ "$total_commits" -gt 2 ]; then
+          # Keep only the last 2 commits
+          git reset --hard HEAD~$((total_commits - 2))
+          git push --force "https://${GITHUB_ACTOR}:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" main
         else
           echo "Less than 3 commits, no action taken"
         fi
